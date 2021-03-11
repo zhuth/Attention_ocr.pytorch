@@ -16,7 +16,7 @@ import numpy as np
 class listDataset(Dataset):
     def __init__(self, list_file=None, transform=None, target_transform=None):
         self.list_file = list_file
-        with open(list_file) as fp:
+        with open(list_file, encoding='utf-8') as fp:
             self.lines = fp.readlines()
             self.nSamples = len(self.lines)
 
@@ -43,7 +43,7 @@ class listDataset(Dataset):
         if self.transform is not None:
             img = self.transform(img)
 
-        label = line_splits[1].decode('utf-8')
+        label = line_splits[1]
 
         if self.target_transform is not None:
             label = self.target_transform(label)

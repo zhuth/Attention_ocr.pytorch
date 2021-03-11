@@ -1,12 +1,12 @@
-attention-ocr.pytorch:Encoder+Decoder+attention model
+attention-ocr.pytorch: Encoder+Decoder+attention for Chinese OCR
 ======================================
 
-This repository implements the the encoder and decoder model with attention model for OCR, the encoder uses CNN+Bi-LSTM, the decoder uses GRU. This repository is modified from https://github.com/meijieru/crnn.pytorch  
-Earlier I had an open source version, but had some problems identifying images of fixed width. Recently I modified the model to support image recognition with variable width. The function is the same as CRNN. Due to the time problem, there is no pre-training model this time, which will be updated later.
+This repository implements the the encoder and decoder model with attention model for OCR, the encoder uses CNN+Bi-LSTM, the decoder uses GRU. This repository is modified from https://github.com/meijieru/crnn.pytorch and forked from https://github.com/chenjun2hao/Attention_ocr.pytorch to adapt pytorch 1.8.
 
-# requirements
-pytorch 0.4.1  
-opencv_python
+
+# Requirements
+pytorch 1.8 (tested with cuda 11.1)
+opencv-python
 ```bash
 cd Attention_ocr.pytorch
 pip install -r requirements.txt
@@ -31,15 +31,6 @@ path/AttentionData/52041437_3766953320.jpg 虾的鲜美自是不可待言
 cd Attention_ocr.pytorch
 python train.py --trainlist ./data/ch_train.txt --vallist ./data/ch_test.txt
 ```
-then you can see in the terminel as follow:
-![attentionocr](./test_img/md_img/attentionV2.png)
-there uses the decoderV2 model for decoder.
-
-
-# The previous version  
-
-**_git checkout AttentionOcrV1_**
-
 
 # Reference
 1. [crnn.pytorch](https://github.com/meijieru/crnn.pytorch)

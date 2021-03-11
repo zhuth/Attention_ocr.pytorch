@@ -8,16 +8,17 @@ https://github.com/chenjun2hao/Attention_ocr.pytorch
 
 import torch
 from torch.autograd import Variable
-import utils
-import dataset
+from src import utils
+from src import dataset
 from PIL import Image
-from utils import alphabet
+from src.utils import alphabet
 import models.crnn_lang as crnn
+import glob, os
 
 use_gpu = True
 
-encoder_path = './expr/attentioncnn/encoder_5.pth'
-# decoder_path = './expr/attentioncnn/decoder_5.pth'
+encoder_path = max(glob.glob('expr/attentioncnn/encoder_*'), key=lambda x: os.stat(x).st_mtime)
+decoder_path = max(glob.glob('expr/attentioncnn/decoder_*'), key=lambda x: os.stat(x).st_mtime)
 img_path = './test_img/20441531_4212871437.jpg'
 max_length = 15                          # 最长字符串的长度
 EOS_TOKEN = 1
@@ -29,7 +30,7 @@ decoder = crnn.decoderV2(256, nclass)
 
 
 if encoder_path and decoder_path:
-    print('loading pretrained models ......')
+    print(f'loading pretrained models {encoder_path} ......')
     encoder.load_state_dict(torch.load(encoder_path))
     decoder.load_state_dict(torch.load(decoder_path))
 if torch.cuda.is_available() and use_gpu:

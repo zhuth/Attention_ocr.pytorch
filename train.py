@@ -1,5 +1,4 @@
 # coding:utf-8
-from __future__ import print_function
 import argparse
 import random
 import torch
@@ -30,12 +29,11 @@ parser.add_argument('--lr', type=float, default=0.001, help='learning rate for C
 parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5')
 parser.add_argument('--cuda', action='store_true', help='enables cuda', default=True)
 parser.add_argument('--ngpu', type=int, default=1, help='number of GPUs to use')
-parser.add_argument('--encoder', type=str, default='./expr/attentioncnn/encoder_600.pth', help="path to encoder (to continue training)")
+parser.add_argument('--encoder', type=str, default='./expr/attentioncnn/encoder_10.pth', help="path to encoder (to continue training)")
 parser.add_argument('--decoder', type=str, default='', help='path to decoder (to continue training)')
 parser.add_argument('--experiment', default='./expr/attentioncnn', help='Where to store samples and models')
-parser.add_argument('--displayInterval', type=int, default=10, help='Interval to be displayed')
-parser.add_argument('--valInterval', type=int, default=1, help='Interval to be displayed')
-parser.add_argument('--saveInterval', type=int, default=10, help='Interval to be displayed')
+parser.add_argument('--display_interval', type=int, default=100, help='Interval to be displayed')
+parser.add_argument('--save_interval', type=int, default=5, help='Interval to be saved')
 parser.add_argument('--adam', default=True, action='store_true', help='Whether to use adam (default is rmsprop)')
 parser.add_argument('--adadelta', action='store_true', help='Whether to use adadelta (default is rmsprop)')
 parser.add_argument('--keep_ratio', action='store_true', help='whether to keep ratio for image resize')
@@ -43,7 +41,6 @@ parser.add_argument('--random_sample', default=True, action='store_true', help='
 parser.add_argument('--teaching_forcing_prob', type=float, default=0.5, help='where to use teach forcing')
 parser.add_argument('--max_width', type=int, default=71, help='the width of the featuremap out from cnn')
 opt = parser.parse_args()
-print(opt)
 
 SOS_token = 0
 EOS_TOKEN = 1              # 结束标志的标签
@@ -52,7 +49,8 @@ BLANK = 2                  # blank for padding
 
 if opt.experiment is None:
     opt.experiment = 'expr'
-os.system('mkdir -p {0}'.format(opt.experiment))        # 创建多级目录
+if not os.path.exists(opt.experiment):
+    os.makedirs(opt.experiment)
 
 opt.manualSeed = random.randint(1, 10000)  # fix seed
 print("Random Seed: ", opt.manualSeed)
@@ -98,10 +96,10 @@ if opt.encoder:
     print('loading pretrained encoder model from %s' % opt.encoder)
     encoder.load_state_dict(torch.load(opt.encoder))
 if opt.decoder:
-    print('loading pretrained encoder model from %s' % opt.decoder)
+    print('loading pretrained decoder model from %s' % opt.decoder)
     encoder.load_state_dict(torch.load(opt.encoder))
-print(encoder)
-print(decoder)
+# print(encoder)
+# print(decoder)
 
 image = torch.FloatTensor(opt.batchSize, 3, opt.imgH, opt.imgH)
 text = torch.LongTensor(opt.batchSize * 5)
@@ -242,7 +240,7 @@ def trainBatch(encoder, decoder, criterion, encoder_optimizer, decoder_optimizer
 
 if __name__ == '__main__':
     t0 = time.time()
-    for epoch in range(opt.niter):
+    for epoch in range(1, opt.niter + 1):
         train_iter = iter(train_loader)
         i = 0
         while i < len(train_loader)-1:
@@ -256,18 +254,19 @@ if __name__ == '__main__':
             loss_avg.add(cost)
             i += 1
 
-            if i % opt.displayInterval == 0:
+            if i % opt.display_interval == 0:
                 print('[%d/%d][%d/%d] Loss: %f' %
                     (epoch, opt.niter, i, len(train_loader), loss_avg.val()), end=' ')
                 loss_avg.reset()
                 t1 = time.time()
-                print('time elapsed %d' % (t1-t0))
+                print('time elapsed %.3f' % (t1-t0))
                 t0 = time.time()
 
         # do checkpointing
-        if epoch % opt.saveInterval == 0:
-            val(encoder, decoder, criterion, 1, dataset=test_dataset, teach_forcing=False)            # batchsize:1
+        if epoch % opt.save_interval == 0:
             torch.save(
                 encoder.state_dict(), '{0}/encoder_{1}.pth'.format(opt.experiment, epoch))
             torch.save(
                 decoder.state_dict(), '{0}/decoder_{1}.pth'.format(opt.experiment, epoch))
+            val(encoder, decoder, criterion, 1, dataset=test_dataset, teach_forcing=False)
+    

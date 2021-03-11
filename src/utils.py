@@ -12,10 +12,10 @@ import random
 import numpy as np
 import cv2
 
-with open('./data/char_std_5990.txt') as f:
+with open('./data/char_std_5990.txt', encoding='utf-8') as f:
     data = f.readlines()
     alphabet = [x.rstrip() for x in data]
-    alphabet = ''.join(alphabet).decode('utf-8')        # python2不加decode的时候会乱码
+    alphabet = ''.join(alphabet)        # python2不加decode的时候会乱码
 
 
 class strLabelConverterForAttention(object):
@@ -49,7 +49,7 @@ class strLabelConverterForAttention(object):
         Returns:
             torch.IntTensor targets:max_length × batch_size
         """
-        if isinstance(text, unicode):
+        if isinstance(text, str):
             text = [self.dict[item] for item in text]
         elif isinstance(text, collections.Iterable):
             text = [self.encode(s) for s in text]           # 编码
@@ -203,7 +203,8 @@ def oneHot(v, v_length, nc):
 
 
 def loadData(v, data):
-    v.data.resize_(data.size()).copy_(data)
+    with torch.no_grad():
+        v.set_(data.cuda())
 
 
 def prettyPrint(v):
